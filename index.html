@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>З любов'ю ♥</title>
+<style>
+/* =========================================================
+   ROMANTIC LANDING — STYLE SHEET
+   All tunable values are CSS custom properties. Most of them
+   are also mirrored/overridden at runtime from CONFIG in
+   script.js, so you only need to edit ONE place (the CONFIG
+   object) to restyle the whole page.
+   ========================================================= */
+
+:root{
+  /* ---- palette ---- */
+  --bg-color:            #ffffff;
+  --heart-color-1:       #ff3b57;
+  --heart-color-2:       #ff7590;
+  --card-grad-start:     #ffd6e2;
+  --card-grad-mid:       #ff9fbb;
+  --card-grad-end:       #ff6f9c;
+  --play-btn-color:      #ff4d6d;
+  --accent-glow:         rgba(255, 111, 156, 0.55);
+
+  /* ---- card geometry ---- */
+  --card-width:          460px;
+  --card-height:         260px;
+  --card-radius:         30px;
+  --card-blur:           18px;
+
+  /* ---- motion ---- */
+  --ease-spring:         cubic-bezier(.34, 1.56, .64, 1);
+  --ease-smooth:         cubic-bezier(.22, 1, .36, 1);
+  --speed-fast:          .25s;
+  --speed-medium:        .5s;
+  --speed-slow:          .9s;
+}
+
+*, *::before, *::after{
+  box-sizing: border-box;
+}
+
+html, body{
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden;
+  background: var(--bg-color);
+}
+
+body{
+  min-height: 100svh;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* =========================================================
+   HEARTS LAYER — hand-drawn hearts scattered around edges
+   ========================================================= */
+
+.hearts-layer{
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.heart{
+  position: absolute;
+  opacity: 0;
+  transform-origin: center;
+  animation:
+    heartFadeIn var(--speed-slow) var(--ease-smooth) forwards,
+    heartFloat var(--float-duration, 6s) ease-in-out var(--float-delay, 0s) infinite;
+  animation-delay: var(--fade-delay, 0s), var(--float-delay, 0s);
+  will-change: transform, opacity;
+}
+
+.heart svg{
+  display: block;
+  overflow: visible;
+}
+
+@keyframes heartFadeIn{
+  from{ opacity: 0; transform: scale(.4) rotate(var(--rot, 0deg)); }
+  to{ opacity: var(--heart-opacity, .85); transform: scale(1) rotate(var(--rot, 0deg)); }
+}
+
+@keyframes heartFloat{
+  0%,   100%{ transform: translateY(0) rotate(var(--rot, 0deg)); }
+  50%       { transform: translateY(-14px) rotate(calc(var(--rot, 0deg) + 4deg)); }
+}
+
+/* =========================================================
+   STAGE + CARD
+   ========================================================= */
+
+.stage{
+  position: relative;
+  z-index: 2;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.card{
+  position: relative;
+  width: min(var(--card-width), 92vw);
+  height: var(--card-height);
+  border-radius: var(--card-radius);
+  background: linear-gradient(135deg, var(--card-grad-start), var(--card-grad-mid) 55%, var(--card-grad-end));
+  box-shadow:
+    0 25px 60px -20px var(--accent-glow),
+    0 8px 20px -8px rgba(255, 90, 140, .35),
+    inset 0 1px 0 rgba(255,255,255,.6);
+  backdrop-filter: blur(var(--card-blur));
+  -webkit-backdrop-filter: blur(var(--card-blur));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+
+  opacity: 0;
+  transform: scale(.85) translateY(10px);
+  animation: cardEnter var(--speed-slow) var(--ease-spring) .2s forwards;
+
+  transition:
+    width var(--speed-slow) var(--ease-smooth),
+    height var(--speed-slow) var(--ease-smooth),
+    max-width var(--speed-slow) var(--ease-smooth),
+    border-radius var(--speed-medium) var(--ease-smooth),
+    box-shadow var(--speed-medium) var(--ease-smooth);
+}
+
+@keyframes cardEnter{
+  from{ opacity: 0; transform: scale(.85) translateY(10px); filter: blur(6px); }
+  to  { opacity: 1; transform: scale(1) translateY(0);      filter: blur(0); }
+}
+
+/* Expanded state once video is playing */
+.card.is-expanded{
+  width: min(880px, 94vw);
+  height: min(495px, 78svh);
+  border-radius: 24px;
+  box-shadow:
+    0 40px 90px -30px var(--accent-glow),
+    0 10px 30px -10px rgba(255, 90, 140, .4);
+}
+
+/* =========================================================
+   PLAY BUTTON
+   ========================================================= */
+
+.play-btn{
+  position: relative;
+  z-index: 3;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,.94);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow:
+    0 10px 30px -8px rgba(255, 60, 110, .55),
+    0 0 0 0 rgba(255,255,255,.7);
+  transition:
+    transform var(--speed-fast) var(--ease-spring),
+    box-shadow var(--speed-fast) var(--ease-smooth),
+    opacity var(--speed-medium) var(--ease-smooth);
+  animation: playPulse 2.6s ease-in-out infinite;
+}
+
+.play-btn__triangle path{
+  fill: var(--play-btn-color);
+}
+
+.play-btn:hover{
+  transform: scale(1.08);
+}
+
+.play-btn:active{
+  transform: scale(.92);
+}
+
+.play-btn.is-hidden{
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(.6);
+}
+
+@keyframes playPulse{
+  0%, 100%{ box-shadow: 0 10px 30px -8px rgba(255,60,110,.55), 0 0 0 0 rgba(255,255,255,.45); }
+  50%     { box-shadow: 0 10px 34px -6px rgba(255,60,110,.65), 0 0 0 14px rgba(255,255,255,0); }
+}
+
+/* =========================================================
+   VIDEO + CUSTOM CONTROLS
+   ========================================================= */
+
+.video-wrap{
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--speed-medium) var(--ease-smooth) .15s;
+}
+
+.video-wrap.is-active{
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.video{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  background: #000;
+}
+
+.video-controls{
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: linear-gradient(to top, rgba(0,0,0,.55), rgba(0,0,0,0));
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity var(--speed-fast) var(--ease-smooth), transform var(--speed-fast) var(--ease-smooth);
+}
+
+.video-wrap.is-active .video-controls{
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.ctrl-btn{
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,.18);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform var(--speed-fast) var(--ease-spring), background var(--speed-fast) var(--ease-smooth);
+}
+
+.ctrl-btn:hover{ background: rgba(255,255,255,.3); transform: scale(1.08); }
+.ctrl-btn:active{ transform: scale(.9); }
+.ctrl-btn svg path{ fill: #fff; }
+
+.time{
+  color: #fff;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  min-width: 34px;
+  text-align: center;
+  opacity: .9;
+}
+
+.progress{
+  flex: 1;
+  cursor: pointer;
+  padding: 8px 0;
+}
+
+.progress__track{
+  position: relative;
+  height: 4px;
+  border-radius: 4px;
+  background: rgba(255,255,255,.3);
+  overflow: visible;
+}
+
+.progress__fill{
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 0%;
+  border-radius: 4px;
+  background: #fff;
+  transition: width .1s linear;
+}
+
+.progress__thumb{
+  position: absolute;
+  top: 50%;
+  left: 0%;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(255,255,255,.25);
+  transform: translate(-50%, -50%);
+  transition: left .1s linear, transform var(--speed-fast) var(--ease-spring);
+}
+
+.progress:hover .progress__thumb{
+  transform: translate(-50%, -50%) scale(1.2);
+}
+
+/* =========================================================
+   FULLSCREEN MODE (triggered automatically when Play is pressed)
+   ========================================================= */
+
+.card:fullscreen,
+.card:-webkit-full-screen{
+  width: 100vw;
+  height: 100vh;
+  max-width: none;
+  border-radius: 0;
+  background: #000;
+}
+
+.card:fullscreen .video,
+.card:-webkit-full-screen .video{
+  object-fit: contain;
+}
+
+.card:fullscreen .video-controls,
+.card:-webkit-full-screen .video-controls{
+  padding: 16px 22px;
+}
+
+/* ---------------------------------------------------------
+   CSS "force landscape" fallback.
+   Used on devices/browsers that don't support the Screen
+   Orientation lock API (notably iOS Safari). Rotates the
+   whole card 90° and swaps its box so it visually fills the
+   screen in landscape even while the OS keeps the page in
+   portrait. Applied/removed by script.js.
+   --------------------------------------------------------- */
+.card.force-landscape{
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  width: 100vh !important;
+  height: 100vw !important;
+  max-width: none !important;
+  border-radius: 0;
+  transform: rotate(90deg) translateY(-100%);
+  transform-origin: top left;
+  z-index: 1000;
+  background: #000;
+}
+
+.card.force-landscape .video{
+  object-fit: contain;
+}
+
+/* =========================================================
+   ACCESSIBILITY — respect reduced motion preference
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce){
+  .heart{ animation: none; opacity: var(--heart-opacity, .85); }
+  .card{ animation: none; opacity: 1; transform: none; }
+  .play-btn{ animation: none; }
+  *{ transition-duration: .01ms !important; }
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 520px){
+  .play-btn{ width: 78px; height: 78px; }
+  .video-controls{ padding: 8px 10px; gap: 8px; }
+  .time{ font-size: 11px; min-width: 30px; }
+}
+
+  </style>
+</head>
+<body>
+
+  <!-- Hand-drawn hearts are injected here by script.js (config-driven, avoids center content) -->
+  <div class="hearts-layer" id="heartsLayer" aria-hidden="true"></div>
+
+  <!-- Main stage -->
+  <main class="stage">
+
+    <div class="card" id="card">
+
+      <!-- Idle state: play button -->
+      <button class="play-btn" id="playBtn" aria-label="Відтворити відео">
+        <span class="play-btn__ring"></span>
+        <svg class="play-btn__triangle" viewBox="0 0 24 24" width="34" height="34">
+          <path d="M8 5.14v13.72c0 .8.87 1.29 1.56.87l10.7-6.86a1 1 0 0 0 0-1.74L9.56 4.27C8.87 3.85 8 4.34 8 5.14Z"/>
+        </svg>
+      </button>
+
+      <!-- Video + custom controls (hidden until play is pressed) -->
+      <div class="video-wrap" id="videoWrap">
+        <video
+          id="video"
+          class="video"
+          playsinline
+          preload="none"
+        >
+          <!-- Change the src in script.js CONFIG.videoSrc -->
+          Ваш браузер не підтримує відео.
+        </video>
+
+        <div class="video-controls" id="videoControls">
+          <button class="ctrl-btn" id="toggleBtn" aria-label="Пауза / Відтворити">
+            <svg id="iconPlay" viewBox="0 0 24 24" width="16" height="16"><path d="M8 5.14v13.72c0 .8.87 1.29 1.56.87l10.7-6.86a1 1 0 0 0 0-1.74L9.56 4.27C8.87 3.85 8 4.34 8 5.14Z"/></svg>
+            <svg id="iconPause" viewBox="0 0 24 24" width="16" height="16" style="display:none"><path d="M7 5h3v14H7zM14 5h3v14h-3z"/></svg>
+          </button>
+
+          <span class="time time--current" id="timeCurrent">0:00</span>
+
+          <div class="progress" id="progress">
+            <div class="progress__track">
+              <div class="progress__fill" id="progressFill"></div>
+              <div class="progress__thumb" id="progressThumb"></div>
+            </div>
+          </div>
+
+          <span class="time time--duration" id="timeDuration">0:00</span>
+
+          <button class="ctrl-btn" id="muteBtn" aria-label="Звук">
+            <svg id="iconSound" viewBox="0 0 24 24" width="16" height="16"><path d="M5 9v6h4l5 5V4L9 9H5Z"/></svg>
+            <svg id="iconMute" viewBox="0 0 24 24" width="16" height="16" style="display:none"><path d="M5 9v6h4l5 5V4L9 9H5Zm11.5 3-2.3-2.3 1.1-1.1L17.6 11l2.3-2.3 1.1 1.1L18.7 12l2.3 2.3-1.1 1.1L17.6 13l-2.3 2.3-1.1-1.1L16.5 12Z"/></svg>
+          </button>
+
+          <button class="ctrl-btn" id="fullscreenBtn" aria-label="На весь екран">
+            <svg viewBox="0 0 24 24" width="16" height="16"><path d="M4 9V4h5v2H6v3H4Zm0 6v5h5v-2H6v-3H4Zm16-6V4h-5v2h3v3h2ZM15 20v-2h3v-3h2v5h-5Z"/></svg>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <script>
+/* =========================================================
+   ROMANTIC LANDING — CONFIGURATION
+   Change everything about the page from this single object.
+   Colors/sizes here are pushed into CSS custom properties on
+   load, so style.css and script.js always stay in sync.
+   ========================================================= */
+const CONFIG = {
+  // --- video ---
+  videoSrc: "video/love-story.mp4", // <- put the path to your video here
+
+  // --- background & hearts ---
+  backgroundColor: "#ffffff",
+  heartColors: ["#ff3b57", "#ff7590", "#ff5577"],
+  heartCount: 22,          // how many hand-drawn hearts to scatter
+  heartMinSize: 18,        // px
+  heartMaxSize: 52,        // px
+  heartOpacity: 0.85,
+  heartFloatMinDuration: 4,   // seconds
+  heartFloatMaxDuration: 8,   // seconds
+
+  // --- central card ---
+  cardWidth: 460,          // px
+  cardHeight: 260,         // px
+  cardRadius: 30,          // px
+  cardBlur: 18,            // px
+  cardGradient: ["#ffd6e2", "#ff9fbb", "#ff6f9c"],
+
+  // --- play button ---
+  playButtonColor: "#ff4d6d",
+  accentGlow: "rgba(255, 111, 156, 0.55)",
+
+  // --- animation speed (seconds) ---
+  speedFast: 0.25,
+  speedMedium: 0.5,
+  speedSlow: 0.9,
+
+  // --- playback behaviour ---
+  autoFullscreenOnPlay: true,   // enter fullscreen the moment Play is pressed
+  autoLandscapeOnPlay: true,    // and force landscape orientation (mobile only)
+};
+
+/* =========================================================
+   APPLY CONFIG -> CSS VARIABLES
+   ========================================================= */
+(function applyConfig() {
+  const root = document.documentElement.style;
+  root.setProperty("--bg-color", CONFIG.backgroundColor);
+  root.setProperty("--heart-color-1", CONFIG.heartColors[0]);
+  root.setProperty("--heart-color-2", CONFIG.heartColors[1] || CONFIG.heartColors[0]);
+  root.setProperty("--card-width", `${CONFIG.cardWidth}px`);
+  root.setProperty("--card-height", `${CONFIG.cardHeight}px`);
+  root.setProperty("--card-radius", `${CONFIG.cardRadius}px`);
+  root.setProperty("--card-blur", `${CONFIG.cardBlur}px`);
+  root.setProperty("--card-grad-start", CONFIG.cardGradient[0]);
+  root.setProperty("--card-grad-mid", CONFIG.cardGradient[1]);
+  root.setProperty("--card-grad-end", CONFIG.cardGradient[2]);
+  root.setProperty("--play-btn-color", CONFIG.playButtonColor);
+  root.setProperty("--accent-glow", CONFIG.accentGlow);
+  root.setProperty("--speed-fast", `${CONFIG.speedFast}s`);
+  root.setProperty("--speed-medium", `${CONFIG.speedMedium}s`);
+  root.setProperty("--speed-slow", `${CONFIG.speedSlow}s`);
+})();
+
+/* =========================================================
+   HAND-DRAWN HEART SVG
+   A single wobbly path (drawn with a slightly irregular
+   curve so it reads as hand-sketched rather than a perfect
+   vector heart), stroked like a marker/pencil.
+   ========================================================= */
+function heartSVG(color, size, filled) {
+  const wobble = (range) => (Math.random() * 2 - 1) * range;
+  // Base heart path scaled to a 32x32 box, with tiny random jitter
+  // added to the control points for a "drawn by hand" feel.
+  const dipY = (16 + wobble(1.2)).toFixed(1);
+  const leftLobeX = (11.3 + wobble(0.8)).toFixed(1);
+  const rightLobeX = (20.7 + wobble(0.8)).toFixed(1);
+  const tipY = (28.4 + wobble(0.6)).toFixed(1);
+
+  const path = `M16 ${tipY}
+    C16 ${tipY} 3 20.6 3 11.9
+    C3 6.6 7 3.2 ${leftLobeX} 3.2
+    C13.7 3.2 15.4 4.4 16 ${dipY}
+    C16.6 4.4 18.3 3.2 ${rightLobeX} 3.2
+    C25 3.2 29 6.6 29 11.9
+    C29 20.6 16 ${tipY} 16 ${tipY} Z`;
+
+  const ns = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(ns, "svg");
+  svg.setAttribute("viewBox", "0 0 32 32");
+  svg.setAttribute("width", size);
+  svg.setAttribute("height", size);
+
+  const p = document.createElementNS(ns, "path");
+  p.setAttribute("d", path.replace(/\s+/g, " "));
+  if (filled) {
+    p.setAttribute("fill", color);
+    p.setAttribute("fill-opacity", "0.9");
+    p.setAttribute("stroke", color);
+    p.setAttribute("stroke-width", "1");
+  } else {
+    p.setAttribute("fill", "none");
+    p.setAttribute("stroke", color);
+    p.setAttribute("stroke-width", "2.2");
+    p.setAttribute("stroke-linecap", "round");
+    p.setAttribute("stroke-linejoin", "round");
+  }
+  svg.appendChild(p);
+  return svg;
+}
+
+/* =========================================================
+   SCATTER HEARTS AROUND THE EDGES
+   Hearts are placed only within an outer "frame" band of the
+   viewport so the central content area is always left clear.
+   ========================================================= */
+function scatterHearts() {
+  const layer = document.getElementById("heartsLayer");
+  if (!layer) return;
+  layer.innerHTML = "";
+
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  // Safe zone in the middle we must not draw hearts into (roughly
+  // where the card lives, plus breathing room around it).
+  const safeW = Math.min(CONFIG.cardWidth * 1.6, vw * 0.9);
+  const safeH = Math.min(CONFIG.cardHeight * 2.2, vh * 0.85);
+  const safeLeft = (vw - safeW) / 2;
+  const safeTop = (vh - safeH) / 2;
+  const safeRight = safeLeft + safeW;
+  const safeBottom = safeTop + safeH;
+
+  const isInsideSafeZone = (x, y, size) => {
+    return (
+      x + size > safeLeft &&
+      x < safeRight &&
+      y + size > safeTop &&
+      y < safeBottom
+    );
+  };
+
+  for (let i = 0; i < CONFIG.heartCount; i++) {
+    const size = Math.round(
+      CONFIG.heartMinSize + Math.random() * (CONFIG.heartMaxSize - CONFIG.heartMinSize)
+    );
+
+    let x, y, attempts = 0;
+    do {
+      x = Math.random() * (vw - size);
+      y = Math.random() * (vh - size);
+      attempts++;
+    } while (isInsideSafeZone(x, y, size) && attempts < 25);
+
+    // If we still landed in the safe zone after many tries, push the
+    // heart to the nearest edge band instead of skipping it.
+    if (isInsideSafeZone(x, y, size)) {
+      const edge = Math.floor(Math.random() * 2);
+      if (edge === 0) {
+        y = Math.random() < 0.5 ? Math.random() * safeTop : safeBottom + Math.random() * (vh - safeBottom - size);
+      } else {
+        x = Math.random() < 0.5 ? Math.random() * safeLeft : safeRight + Math.random() * (vw - safeRight - size);
+      }
+    }
+
+    const color = CONFIG.heartColors[i % CONFIG.heartColors.length];
+    const filled = Math.random() > 0.45;
+    const rotation = Math.round(Math.random() * 40 - 20);
+    const floatDuration =
+      CONFIG.heartFloatMinDuration +
+      Math.random() * (CONFIG.heartFloatMaxDuration - CONFIG.heartFloatMinDuration);
+    const floatDelay = Math.random() * 2;
+    const fadeDelay = Math.random() * 1.2;
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "heart";
+    wrapper.style.left = `${x}px`;
+    wrapper.style.top = `${y}px`;
+    wrapper.style.setProperty("--rot", `${rotation}deg`);
+    wrapper.style.setProperty("--heart-opacity", CONFIG.heartOpacity);
+    wrapper.style.setProperty("--float-duration", `${floatDuration}s`);
+    wrapper.style.setProperty("--float-delay", `${floatDelay}s`);
+    wrapper.style.setProperty("--fade-delay", `${fadeDelay}s`);
+    wrapper.style.animationDelay = `${fadeDelay}s, ${floatDelay}s`;
+
+    wrapper.appendChild(heartSVG(color, size, filled));
+    layer.appendChild(wrapper);
+  }
+}
+
+scatterHearts();
+
+// Re-scatter on resize (debounced) so hearts stay well placed on
+// orientation changes / responsive breakpoints.
+let resizeTimer = null;
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(scatterHearts, 200);
+});
+
+/* =========================================================
+   PLAY / VIDEO LOGIC
+   ========================================================= */
+const card = document.getElementById("card");
+const playBtn = document.getElementById("playBtn");
+const videoWrap = document.getElementById("videoWrap");
+const video = document.getElementById("video");
+
+const toggleBtn = document.getElementById("toggleBtn");
+const iconPlay = document.getElementById("iconPlay");
+const iconPause = document.getElementById("iconPause");
+
+const muteBtn = document.getElementById("muteBtn");
+const iconSound = document.getElementById("iconSound");
+const iconMute = document.getElementById("iconMute");
+
+const fullscreenBtn = document.getElementById("fullscreenBtn");
+
+const progress = document.getElementById("progress");
+const progressFill = document.getElementById("progressFill");
+const progressThumb = document.getElementById("progressThumb");
+const timeCurrent = document.getElementById("timeCurrent");
+const timeDuration = document.getElementById("timeDuration");
+
+function formatTime(sec) {
+  if (!isFinite(sec)) return "0:00";
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60)
+    .toString()
+    .padStart(2, "0");
+  return `${m}:${s}`;
+}
+
+/* Enter fullscreen on the whole card (so the custom controls stay
+   visible too) and, on mobile, force a landscape orientation lock.
+   Both browser APIs are only available/allowed after a direct user
+   gesture (the Play tap), which is exactly when we call this. */
+function isPortrait() {
+  return window.matchMedia("(orientation: portrait)").matches;
+}
+
+// Visual fallback: rotate the card itself 90° via CSS so it *looks*
+// landscape even when the OS/browser has no real orientation-lock
+// support (this is the case on iOS Safari and on desktop browsers).
+function applyCssRotationFallback() {
+  if (!CONFIG.autoLandscapeOnPlay) return;
+  if (isPortrait()) {
+    card.classList.add("force-landscape");
+  }
+}
+
+function removeCssRotationFallback() {
+  card.classList.remove("force-landscape");
+}
+
+function goFullscreenLandscape() {
+  const el = card;
+  const request =
+    el.requestFullscreen ||
+    el.webkitRequestFullscreen || // Safari
+    el.msRequestFullscreen;
+
+  const lockLandscape = () => {
+    if (!CONFIG.autoLandscapeOnPlay) return;
+    const orientation = screen.orientation || screen.msOrientation;
+    if (orientation && orientation.lock) {
+      orientation
+        .lock("landscape")
+        .catch(() => {
+          /* Native lock refused/unsupported (iOS Safari, some desktop
+             browsers) — fall back to the CSS rotation trick so the
+             video still visually appears in landscape. */
+          applyCssRotationFallback();
+        });
+    } else {
+      // No Orientation API at all — go straight to the CSS fallback.
+      applyCssRotationFallback();
+    }
+  };
+
+  if (CONFIG.autoFullscreenOnPlay && request) {
+    request
+      .call(el)
+      .then(lockLandscape)
+      .catch(() => {
+        /* Fullscreen request itself was refused — still try the CSS
+           fallback so the tilt happens even without real fullscreen. */
+        applyCssRotationFallback();
+      });
+  } else if (CONFIG.autoFullscreenOnPlay && video.webkitEnterFullscreen) {
+    // Older iOS Safari: only the <video> element itself supports
+    // fullscreen, and orientation follows automatically in that mode.
+    video.webkitEnterFullscreen();
+  } else {
+    lockLandscape();
+  }
+}
+
+// Release the orientation lock / CSS fallback once fullscreen is
+// exited, and also react if the person physically rotates the phone.
+function bindOrientationUnlock() {
+  const fsElement = () =>
+    document.fullscreenElement || document.webkitFullscreenElement;
+
+  const handleExit = () => {
+    if (!fsElement()) {
+      const orientation = screen.orientation || screen.msOrientation;
+      if (orientation && orientation.unlock) orientation.unlock();
+      removeCssRotationFallback();
+    }
+  };
+
+  document.addEventListener("fullscreenchange", handleExit);
+  document.addEventListener("webkitfullscreenchange", handleExit);
+
+  // If the person turns their phone sideways themselves, the CSS
+  // fallback would double-rotate the view — drop it as soon as the
+  // device is actually in landscape.
+  window.matchMedia("(orientation: landscape)").addEventListener("change", (e) => {
+    if (e.matches) removeCssRotationFallback();
+    else if (card.classList.contains("is-expanded") && CONFIG.autoLandscapeOnPlay) {
+      applyCssRotationFallback();
+    }
+  });
+}
+bindOrientationUnlock();
+
+function startVideo() {
+  video.src = CONFIG.videoSrc;
+
+  // Expand the card, hide the play button, reveal the video —
+  // sequenced so the motion reads as one continuous gesture.
+  card.classList.add("is-expanded");
+  playBtn.classList.add("is-hidden");
+
+  // Triggered directly inside the click handler (user-gesture
+  // requirement for both the Fullscreen and Orientation APIs).
+  goFullscreenLandscape();
+
+  setTimeout(() => {
+    videoWrap.classList.add("is-active");
+    video.play().catch(() => {
+      /* Autoplay with sound can be blocked by the browser; muting
+         and retrying keeps the experience seamless for the user. */
+      video.muted = true;
+      iconSound.style.display = "none";
+      iconMute.style.display = "block";
+      video.play();
+    });
+  }, CONFIG.speedMedium * 1000 * 0.4);
+}
+
+playBtn.addEventListener("click", startVideo);
+
+
+// Play / pause toggle
+toggleBtn.addEventListener("click", () => {
+  if (video.paused) {
+    video.play();
+  } else {
+    video.pause();
+  }
+});
+
+video.addEventListener("play", () => {
+  iconPlay.style.display = "none";
+  iconPause.style.display = "block";
+});
+
+video.addEventListener("pause", () => {
+  iconPlay.style.display = "block";
+  iconPause.style.display = "none";
+});
+
+// Mute / unmute
+muteBtn.addEventListener("click", () => {
+  video.muted = !video.muted;
+  iconSound.style.display = video.muted ? "none" : "block";
+  iconMute.style.display = video.muted ? "block" : "none";
+});
+
+// Fullscreen
+fullscreenBtn.addEventListener("click", () => {
+  if (video.requestFullscreen) {
+    video.requestFullscreen();
+  } else if (video.webkitEnterFullscreen) {
+    // iOS Safari
+    video.webkitEnterFullscreen();
+  }
+});
+
+// Progress / seek
+video.addEventListener("loadedmetadata", () => {
+  timeDuration.textContent = formatTime(video.duration);
+});
+
+video.addEventListener("timeupdate", () => {
+  if (!video.duration) return;
+  const pct = (video.currentTime / video.duration) * 100;
+  progressFill.style.width = `${pct}%`;
+  progressThumb.style.left = `${pct}%`;
+  timeCurrent.textContent = formatTime(video.currentTime);
+});
+
+function seekFromEvent(e) {
+  const rect = progress.getBoundingClientRect();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const ratio = Math.min(Math.max((clientX - rect.left) / rect.width, 0), 1);
+  if (video.duration) {
+    video.currentTime = ratio * video.duration;
+  }
+}
+
+progress.addEventListener("click", seekFromEvent);
+
+let isDragging = false;
+progress.addEventListener("mousedown", () => (isDragging = true));
+window.addEventListener("mousemove", (e) => {
+  if (isDragging) seekFromEvent(e);
+});
+window.addEventListener("mouseup", () => (isDragging = false));
+
+progress.addEventListener("touchstart", () => (isDragging = true), { passive: true });
+progress.addEventListener("touchmove", seekFromEvent, { passive: true });
+progress.addEventListener("touchend", () => (isDragging = false));
+
+  </script>
+</body>
+</html>
